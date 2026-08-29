@@ -1,6 +1,11 @@
 name: Update JUNGOL Card
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - generate_card.py
+      - .github/workflows/update-card.yml
   schedule:
     - cron: '17 */6 * * *'
   workflow_dispatch:
