@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-import sys
 import urllib.error
 import urllib.request
 
@@ -18,6 +16,14 @@ URLS = [
     f"{BASE}/ranking/__data.json?handle={HANDLE}",
     f"{BASE}/ranking/__data.json?query={HANDLE}",
     f"{BASE}/ranking/__data.json?search={HANDLE}",
+    f"{BASE}/account/{HANDLE}",
+    f"{BASE}/account/{HANDLE}/__data.json",
+    f"{BASE}/account?handle={HANDLE}",
+    f"{BASE}/account/__data.json?handle={HANDLE}",
+    f"{BASE}/user/{HANDLE}",
+    f"{BASE}/user/{HANDLE}/__data.json",
+    f"{BASE}/profile/{HANDLE}",
+    f"{BASE}/profile/{HANDLE}/__data.json",
 ]
 
 headers = {
@@ -35,16 +41,17 @@ for url in URLS:
             raw = res.read()
             text = raw.decode("utf-8", "replace")
             print("status:", res.status)
+            print("final url:", res.geturl())
             print("type:", res.headers.get("content-type"))
             print("length:", len(raw))
             idx = text.lower().find(HANDLE.lower())
             print("contains handle:", idx >= 0, "index:", idx)
             if idx >= 0:
-                print("around handle:", text[max(0, idx-600):idx+1200].replace("\n", " "))
+                print("around handle:", text[max(0, idx-800):idx+1800].replace("\n", " "))
             else:
-                print("head:", text[:1200].replace("\n", " "))
+                print("head:", text[:1500].replace("\n", " "))
     except urllib.error.HTTPError as e:
         body = e.read().decode("utf-8", "replace")
-        print("HTTP ERROR", e.code, body[:800].replace("\n", " "))
+        print("HTTP ERROR", e.code, body[:1200].replace("\n", " "))
     except Exception as e:
         print("ERROR", repr(e))
