@@ -24,13 +24,13 @@ def fetch(url: str) -> bytes:
         return response.read()
 
 
-def meta(html: str, prop: str) -> str | None:
+def meta(page: str, prop: str) -> str | None:
     patterns = [
         rf'<meta\s+property=["\']{re.escape(prop)}["\']\s+content=["\']([^"\']*)["\']',
         rf'<meta\s+content=["\']([^"\']*)["\']\s+property=["\']{re.escape(prop)}["\']',
     ]
     for pattern in patterns:
-        match = re.search(pattern, html, re.IGNORECASE)
+        match = re.search(pattern, page, re.IGNORECASE)
         if match:
             return html_lib.unescape(match.group(1))
     return None
@@ -54,13 +54,12 @@ def parse_profile(page: str) -> dict[str, object]:
 
     handle_match = re.search(r"@([^\s·]+)", title)
     handle = handle_match.group(1) if handle_match else "Lir09"
-
     tier_name = title.split("·", 1)[1].strip() if "·" in title else "JUNGOL"
 
     rank_match = re.search(r"rank\s+([\d,]+)", description, re.IGNORECASE)
     rank_text = rank_match.group(1) if rank_match else "-"
 
-    # SSR payload currently exposes: rank:<n>,tier:<n>,rv:<n>,rankBaseRv:<n>
+    # JUNGOL's SSR payload currently exposes rank, numeric tier and RV together.
     stats_match = re.search(r"rank:(\d+),tier:(\d+),rv:(\d+),rankBaseRv:", page)
     if stats_match:
         rank_text = f"{int(stats_match.group(1)):,}"
@@ -105,8 +104,8 @@ def make_svg(profile: dict[str, object], icon_uri: str | None) -> str:
     solved = profile["solved"]
     accent = tier_color(str(profile["tier_name"]))
 
-    solved_text = f"{solved} solved" if isinstance(solved, int) else "JUNGOL"
-    rv_text = f"RV {rv}" if isinstance(rv, int) else ""
+    solved_text = str(solved) if isinstance(solved, int) else "-"
+    rv_text = str(rv) if isinstance(rv, int) else "-"
 
     if icon_uri:
         icon = f'<image href="{icon_uri}" x="22" y="35" width="98" height="98" preserveAspectRatio="xMidYMid meet"/>'
@@ -149,7 +148,7 @@ def make_svg(profile: dict[str, object], icon_uri: str | None) -> str:
   <text x="225" y="125" class="label">SOLVED</text>
   <text x="225" y="145" class="value">{solved_text}</text>
 
-  <text x="318" y="125" class="label">RATING</text>
+  <text x="318" y="125" class="label">RV</text>
   <text x="318" y="145" class="value">{rv_text}</text>
 </svg>
 '''
