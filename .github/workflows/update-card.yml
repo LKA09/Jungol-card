@@ -1,0 +1,42 @@
+name: Update JUNGOL Card
+
+on:
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-jungol-card
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Generate card
+        run: python generate_card.py
+
+      - name: Commit changed card
+        shell: bash
+        run: |
+          if git diff --quiet -- jungol-card.svg; then
+            echo "Card is already up to date."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add jungol-card.svg
+          git commit -m "chore: update JUNGOL profile card"
+          git push
