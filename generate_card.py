@@ -7,7 +7,10 @@ from pathlib import Path
 
 ACCOUNT_ID = "143157"
 PROFILE_URL = f"https://jungol.co.kr/account/{ACCOUNT_ID}"
-OUTPUT = Path("jungol-card.svg")
+OUTPUT_DEFAULT = Path("jungol-card.svg")
+OUTPUT_V1 = Path("designs/v1.svg")
+OUTPUT_V2 = Path("designs/v2.svg")
+OUTPUT_COMPACT = Path("designs/compact.svg")
 
 HEADERS = {
     "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/128 Safari/537.36",
@@ -17,7 +20,7 @@ HEADERS = {
 
 TIER_GROUPS = ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Ruby"]
 
-# Matches the tier palette used by mazassumnida v2.
+# Palette follows the visual language of mazassumnida v2, adapted for JUNGOL.
 BACKGROUND_COLOR = {
     "Bronze": ("#F49347", "#984400", "#492000"),
     "Silver": ("#939195", "#6B7E91", "#1F354A"),
@@ -28,7 +31,7 @@ BACKGROUND_COLOR = {
     "Unknown": ("#AAAAAA", "#666666", "#000000"),
 }
 
-# Current JUNGOL RV boundaries. Numeric tier 1..30 maps Bronze V .. Ruby I.
+# JUNGOL numeric tier 1..30 = Bronze V .. Ruby I.
 TIER_BOUNDS = {
     1: (30, 60), 2: (60, 90), 3: (90, 120), 4: (120, 150), 5: (150, 200),
     6: (200, 300), 7: (300, 400), 8: (400, 500), 9: (500, 650), 10: (650, 800),
@@ -114,153 +117,136 @@ def progress_info(tier_number: int, rv: int | None) -> tuple[int, int, int, floa
     return percentage, rv, target, bar_end
 
 
-def make_svg(profile: dict[str, object]) -> str:
+def profile_values(profile: dict[str, object]) -> dict[str, object]:
     handle = html_lib.escape(str(profile["handle"]))
     rank = html_lib.escape(str(profile["rank"]))
     tier_name = str(profile["tier_name"])
     tier_number = int(profile["tier_number"])
     rv = profile["rv"] if isinstance(profile["rv"], int) else None
     solved = profile["solved"] if isinstance(profile["solved"], int) else None
-
     tier_group, tier_level = tier_display(tier_number, tier_name)
-    color1, color2, color3 = BACKGROUND_COLOR.get(tier_group, BACKGROUND_COLOR["Unknown"])
     percentage, current_rv, target_rv, bar_end = progress_info(tier_number, rv)
+    color1, color2, color3 = BACKGROUND_COLOR.get(tier_group, BACKGROUND_COLOR["Unknown"])
 
-    solved_text = str(solved) if solved is not None else "-"
-    rv_text = str(rv) if rv is not None else "-"
-    progress_text = f"{current_rv} / {target_rv}" if rv is not None else "-"
+    return {
+        "handle": handle,
+        "rank": rank,
+        "tier_name": html_lib.escape(tier_name),
+        "tier_group": html_lib.escape(tier_group),
+        "tier_level": html_lib.escape(tier_level),
+        "rv": str(rv) if rv is not None else "-",
+        "solved": str(solved) if solved is not None else "-",
+        "percentage": percentage,
+        "progress": f"{current_rv} / {target_rv}" if rv is not None else "-",
+        "bar_end": bar_end,
+        "color1": color1,
+        "color2": color2,
+        "color3": color3,
+    }
 
-    return f'''<svg height="170" width="350" viewBox="0 0 350 170"
-    xmlns="http://www.w3.org/2000/svg" role="img"
-    aria-label="JUNGOL {handle} {html_lib.escape(tier_name)}">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;display=block');
 
-    @keyframes fadeIn {{
-      from {{ opacity: 0; }}
-      to {{ opacity: 1; }}
-    }}
-    @keyframes delayFadeIn {{
-      0%, 80% {{ opacity: 0; }}
-      100% {{ opacity: 1; }}
-    }}
-    @keyframes rateBarAnimation {{
-      0%, 70% {{ stroke-dashoffset: {bar_end:.2f}; }}
-      100% {{ stroke-dashoffset: 35; }}
-    }}
-
-    text {{
-      fill: white;
-      font-family: 'Noto Sans KR', sans-serif;
-    }}
-    .handle {{
-      font-size: 1.30em;
-      font-weight: 700;
-      animation: fadeIn 1s ease-in-out forwards;
-    }}
-    .tier-title {{
-      font-size: 1.35em;
-      font-weight: 700;
-      font-style: italic;
-      opacity: 0;
-      animation: delayFadeIn 2s ease-in-out forwards;
-    }}
-    .tier-number {{
-      font-size: 3.1em;
-      font-weight: 700;
-      text-anchor: middle;
-      opacity: 0;
-      animation: delayFadeIn 2s ease-in-out forwards;
-    }}
-    .subtitle {{ font-weight: 500; font-size: 0.9em; }}
-    .value {{ font-weight: 400; font-size: 0.9em; }}
-    .percentage {{ font-weight: 300; font-size: 0.8em; }}
-    .progress {{ font-size: 0.7em; }}
-    .item {{
-      opacity: 0;
-      animation: delayFadeIn 2s ease-in-out forwards;
-    }}
-    .rate-bar {{
-      stroke-dasharray: {bar_end:.2f};
-      stroke-dashoffset: {bar_end:.2f};
-      animation: rateBarAnimation 1.5s forwards ease-in-out;
-    }}
-  </style>
-
+def render_v1(profile: dict[str, object]) -> str:
+    p = profile_values(profile)
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="350" height="170" viewBox="0 0 350 170" role="img" aria-label="JUNGOL {p['handle']} {p['tier_name']}">
   <defs>
-    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="35%">
-      <stop offset="10%" stop-color="{color1}" stop-opacity="1">
-        <animate attributeName="stop-opacity"
-          values="0.7;0.73;0.9;0.97;1;0.97;0.9;0.73;0.7"
-          dur="4s" repeatCount="indefinite"/>
-      </stop>
-      <stop offset="55%" stop-color="{color2}" stop-opacity="1">
-        <animate attributeName="stop-opacity"
-          values="1;0.95;0.93;0.95;1"
-          dur="4s" repeatCount="indefinite"/>
-      </stop>
-      <stop offset="100%" stop-color="{color3}" stop-opacity="1">
-        <animate attributeName="stop-opacity"
-          values="1;0.97;0.9;0.83;0.8;0.83;0.9;0.97;1"
-          dur="4s" repeatCount="indefinite"/>
-      </stop>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="{p['color1']}"/>
+      <stop offset="55%" stop-color="{p['color2']}"/>
+      <stop offset="100%" stop-color="{p['color3']}"/>
     </linearGradient>
   </defs>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;display=block');
+    text {{ fill:#fff; font-family:'Noto Sans KR',sans-serif; }}
+    .handle {{ font-size:21px; font-weight:700; }}
+    .tier {{ font-size:20px; font-weight:700; opacity:.72; }}
+    .label {{ font-size:14px; font-weight:500; }}
+    .value {{ font-size:14px; font-weight:400; }}
+    .small {{ font-size:11px; font-weight:400; }}
+  </style>
+  <rect width="350" height="170" rx="10" fill="url(#bg)"/>
+  <text x="35" y="48" class="handle">{p['handle']}</text>
+  <text x="315" y="48" text-anchor="end" class="tier">{p['tier_group']} {p['tier_level']}</text>
+  <text x="35" y="79" class="label">rate</text><text x="145" y="79" class="value">{p['rv']}</text>
+  <text x="35" y="100" class="label">solved</text><text x="145" y="100" class="value">{p['solved']}</text>
+  <text x="35" y="121" class="label">rank</text><text x="145" y="121" class="value">#{p['rank']}</text>
+  <line x1="35" y1="142" x2="290" y2="142" stroke="floralwhite" stroke-opacity=".4" stroke-width="4" stroke-linecap="round"/>
+  <line x1="35" y1="142" x2="{p['bar_end']:.2f}" y2="142" stroke="floralwhite" stroke-width="4" stroke-linecap="round"/>
+  <text x="297" y="145" class="small">{p['percentage']}%</text>
+  <text x="293" y="158" text-anchor="end" class="small">{p['progress']}</text>
+</svg>
+'''
 
-  <rect width="350" height="170" rx="10" ry="10" fill="url(#grad)"/>
 
-  <!-- v2-style animated tier crest -->
-  <line x1="34" y1="50" x2="34" y2="105" stroke-width="2" stroke="white">
-    <animate attributeName="y2" dur="0.8s" fill="freeze"
-      calcMode="spline" keyTimes="0;0.675;1" keySplines="0 0 1 1;0.5 0 0.5 1"
-      values="50;50;105"/>
-  </line>
-  <line x1="34" y1="105" x2="67" y2="125" stroke-width="2" stroke="white">
-    <animate attributeName="x2" dur="1s" fill="freeze" values="34;34;67" keyTimes="0;0.8;1"/>
-    <animate attributeName="y2" dur="1s" fill="freeze" values="105;105;125" keyTimes="0;0.8;1"/>
-  </line>
-  <line x1="67" y1="125" x2="100" y2="105" stroke-width="2" stroke="white">
-    <animate attributeName="x2" dur="1.2s" fill="freeze" values="67;67;100" keyTimes="0;0.833;1"/>
-    <animate attributeName="y2" dur="1.2s" fill="freeze" values="125;125;105" keyTimes="0;0.833;1"/>
-  </line>
-  <line x1="100" y1="105" x2="100" y2="50" stroke-width="2" stroke="white">
-    <animate attributeName="y2" dur="1.5s" fill="freeze" values="105;105;50" keyTimes="0;0.8;1"/>
-  </line>
-  <line x1="67" y1="130" x2="34" y2="110" stroke-width="2" stroke="white">
-    <animate attributeName="x2" dur="1.9s" fill="freeze" values="67;67;34" keyTimes="0;0.789;1"/>
-    <animate attributeName="y2" dur="1.9s" fill="freeze" values="130;130;110" keyTimes="0;0.789;1"/>
-  </line>
-  <line x1="67" y1="130" x2="100" y2="110" stroke-width="2" stroke="white">
-    <animate attributeName="x2" dur="1.9s" fill="freeze" values="67;67;100" keyTimes="0;0.789;1"/>
-    <animate attributeName="y2" dur="1.9s" fill="freeze" values="130;130;110" keyTimes="0;0.789;1"/>
-  </line>
+def render_v2(profile: dict[str, object]) -> str:
+    p = profile_values(profile)
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="350" height="170" viewBox="0 0 350 170" role="img" aria-label="JUNGOL {p['handle']} {p['tier_name']}">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&amp;display=block');
+    @keyframes fadeIn {{ from {{ opacity:0; }} to {{ opacity:1; }} }}
+    @keyframes delayed {{ 0%,80% {{ opacity:0; }} 100% {{ opacity:1; }} }}
+    @keyframes barIn {{ 0%,70% {{ stroke-dashoffset:{p['bar_end']:.2f}; }} 100% {{ stroke-dashoffset:35; }} }}
+    text {{ fill:white; font-family:'Noto Sans KR',sans-serif; text-rendering:geometricPrecision; }}
+    .handle {{ font-size:1.30em; font-weight:700; letter-spacing:-.02em; animation:fadeIn 1s ease-in-out forwards; }}
+    .tier-title {{ font-size:1.38em; font-weight:700; font-style:italic; letter-spacing:-.055em; opacity:0; animation:delayed 2s ease-in-out forwards; }}
+    .tier-number {{ font-size:3.12em; font-weight:900; letter-spacing:-.055em; text-anchor:middle; opacity:0; animation:delayed 2s ease-in-out forwards; }}
+    .subtitle {{ font-size:.90em; font-weight:500; letter-spacing:-.01em; }}
+    .value {{ font-size:.90em; font-weight:400; letter-spacing:-.005em; }}
+    .percentage {{ font-size:.80em; font-weight:300; }}
+    .progress {{ font-size:.70em; font-weight:400; }}
+    .item {{ opacity:0; animation:delayed 2s ease-in-out forwards; }}
+    .rate-bar {{ stroke-dasharray:{p['bar_end']:.2f}; stroke-dashoffset:{p['bar_end']:.2f}; animation:barIn 1.5s ease-in-out forwards; }}
+  </style>
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="35%">
+      <stop offset="10%" stop-color="{p['color1']}" stop-opacity="1"><animate attributeName="stop-opacity" values=".7;.73;.9;.97;1;.97;.9;.73;.7" dur="4s" repeatCount="indefinite"/></stop>
+      <stop offset="55%" stop-color="{p['color2']}" stop-opacity="1"><animate attributeName="stop-opacity" values="1;.95;.93;.95;1" dur="4s" repeatCount="indefinite"/></stop>
+      <stop offset="100%" stop-color="{p['color3']}" stop-opacity="1"><animate attributeName="stop-opacity" values="1;.97;.9;.83;.8;.83;.9;.97;1" dur="4s" repeatCount="indefinite"/></stop>
+    </linearGradient>
+  </defs>
+  <rect width="350" height="170" rx="10" fill="url(#grad)"/>
 
-  <text x="67" y="42" class="tier-title" text-anchor="middle">{html_lib.escape(tier_group)}</text>
-  <text x="67" y="100" class="tier-number">{html_lib.escape(tier_level)}</text>
+  <line x1="34" y1="50" x2="34" y2="105" stroke="white" stroke-width="2"><animate attributeName="y2" dur=".8s" fill="freeze" values="50;50;105" keyTimes="0;.675;1"/></line>
+  <line x1="34" y1="105" x2="67" y2="125" stroke="white" stroke-width="2"><animate attributeName="x2" dur="1s" fill="freeze" values="34;34;67" keyTimes="0;.8;1"/><animate attributeName="y2" dur="1s" fill="freeze" values="105;105;125" keyTimes="0;.8;1"/></line>
+  <line x1="67" y1="125" x2="100" y2="105" stroke="white" stroke-width="2"><animate attributeName="x2" dur="1.2s" fill="freeze" values="67;67;100" keyTimes="0;.833;1"/><animate attributeName="y2" dur="1.2s" fill="freeze" values="125;125;105" keyTimes="0;.833;1"/></line>
+  <line x1="100" y1="105" x2="100" y2="50" stroke="white" stroke-width="2"><animate attributeName="y2" dur="1.5s" fill="freeze" values="105;105;50" keyTimes="0;.8;1"/></line>
+  <line x1="67" y1="130" x2="34" y2="110" stroke="white" stroke-width="2"><animate attributeName="x2" dur="1.9s" fill="freeze" values="67;67;34" keyTimes="0;.789;1"/><animate attributeName="y2" dur="1.9s" fill="freeze" values="130;130;110" keyTimes="0;.789;1"/></line>
+  <line x1="67" y1="130" x2="100" y2="110" stroke="white" stroke-width="2"><animate attributeName="x2" dur="1.9s" fill="freeze" values="67;67;100" keyTimes="0;.789;1"/><animate attributeName="y2" dur="1.9s" fill="freeze" values="130;130;110" keyTimes="0;.789;1"/></line>
 
-  <text x="135" y="50" class="handle">{handle}</text>
+  <text x="67" y="42" text-anchor="middle" class="tier-title">{p['tier_group']}</text>
+  <text x="67" y="100" class="tier-number">{p['tier_level']}</text>
+  <text x="135" y="50" class="handle">{p['handle']}</text>
 
-  <g class="item" style="animation-delay:200ms">
-    <text x="135" y="79" class="subtitle">rate</text>
-    <text x="225" y="79" class="value">{rv_text}</text>
-  </g>
-  <g class="item" style="animation-delay:400ms">
-    <text x="135" y="99" class="subtitle">solved</text>
-    <text x="225" y="99" class="value">{solved_text}</text>
-  </g>
-  <g class="item" style="animation-delay:600ms">
-    <text x="135" y="119" class="subtitle">rank</text>
-    <text x="225" y="119" class="value">#{rank}</text>
-  </g>
+  <g class="item" style="animation-delay:200ms"><text x="135" y="79" class="subtitle">rate</text><text x="225" y="79" class="value">{p['rv']}</text></g>
+  <g class="item" style="animation-delay:400ms"><text x="135" y="99" class="subtitle">solved</text><text x="225" y="99" class="value">{p['solved']}</text></g>
+  <g class="item" style="animation-delay:600ms"><text x="135" y="119" class="subtitle">rank</text><text x="225" y="119" class="value">#{p['rank']}</text></g>
 
-  <g class="rate-bar" style="animation-delay:800ms">
-    <line x1="35" y1="142" x2="{bar_end:.2f}" y2="142"
-      stroke-width="4" stroke="floralwhite" stroke-linecap="round"/>
-  </g>
-  <line x1="35" y1="142" x2="290" y2="142"
-    stroke-width="4" stroke-opacity="40%" stroke="floralwhite" stroke-linecap="round"/>
-  <text x="297" y="142" dominant-baseline="middle" class="percentage">{percentage}%</text>
-  <text x="293" y="157" class="progress" text-anchor="end">{progress_text}</text>
+  <g class="rate-bar" style="animation-delay:800ms"><line x1="35" y1="142" x2="{p['bar_end']:.2f}" y2="142" stroke="floralwhite" stroke-width="4" stroke-linecap="round"/></g>
+  <line x1="35" y1="142" x2="290" y2="142" stroke="floralwhite" stroke-opacity=".4" stroke-width="4" stroke-linecap="round"/>
+  <text x="297" y="142" dominant-baseline="middle" class="percentage">{p['percentage']}%</text>
+  <text x="293" y="157" text-anchor="end" class="progress">{p['progress']}</text>
+</svg>
+'''
+
+
+def render_compact(profile: dict[str, object]) -> str:
+    p = profile_values(profile)
+    short_tier = f"{p['tier_group'][0]}{p['tier_level']}" if p['tier_level'] else p['tier_group']
+    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="250" height="32" viewBox="0 0 250 32" role="img" aria-label="JUNGOL {p['handle']} {p['tier_name']}">
+  <defs>
+    <linearGradient id="tier" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="{p['color1']}"/><stop offset="55%" stop-color="{p['color2']}"/><stop offset="100%" stop-color="{p['color3']}"/></linearGradient>
+  </defs>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&amp;display=block');
+    text {{ fill:white; font-family:'Noto Sans KR',sans-serif; }}
+  </style>
+  <rect width="250" height="32" rx="6" fill="#343a40"/>
+  <path d="M0 6a6 6 0 0 1 6-6h74v32H6a6 6 0 0 1-6-6z" fill="#24292f"/>
+  <path d="M80 0h54v32H80z" fill="url(#tier)"/>
+  <text x="40" y="21" text-anchor="middle" font-size="12" font-weight="700">JUNGOL</text>
+  <text x="107" y="21" text-anchor="middle" font-size="13" font-weight="700">{short_tier}</text>
+  <text x="144" y="20" font-size="12" font-weight="500">{p['handle']}</text>
+  <text x="235" y="20" text-anchor="end" font-size="11" font-weight="400">{p['rv']} RV</text>
 </svg>
 '''
 
@@ -273,8 +259,17 @@ def main() -> None:
     if profile["handle"] != "Lir09":
         raise RuntimeError(f"unexpected JUNGOL account: {profile['handle']}")
 
-    OUTPUT.write_text(make_svg(profile), encoding="utf-8")
-    print(f"wrote {OUTPUT}")
+    OUTPUT_V1.parent.mkdir(parents=True, exist_ok=True)
+    v1 = render_v1(profile)
+    v2 = render_v2(profile)
+    compact = render_compact(profile)
+
+    OUTPUT_V1.write_text(v1, encoding="utf-8")
+    OUTPUT_V2.write_text(v2, encoding="utf-8")
+    OUTPUT_COMPACT.write_text(compact, encoding="utf-8")
+    OUTPUT_DEFAULT.write_text(v2, encoding="utf-8")
+
+    print(f"wrote {OUTPUT_DEFAULT}, {OUTPUT_V1}, {OUTPUT_V2}, {OUTPUT_COMPACT}")
 
 
 if __name__ == "__main__":
