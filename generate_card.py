@@ -17,39 +17,25 @@ HEADERS = {
 
 TIER_GROUPS = ["Bronze", "Silver", "Gold", "Platinum", "Diamond", "Ruby"]
 
-# JUNGOL RV boundaries used for the progress-to-next-tier bar.
-# key = numeric JUNGOL tier, value = (current tier minimum RV, next tier RV)
+# Matches the tier palette used by mazassumnida v2.
+BACKGROUND_COLOR = {
+    "Bronze": ("#F49347", "#984400", "#492000"),
+    "Silver": ("#939195", "#6B7E91", "#1F354A"),
+    "Gold": ("#FFC944", "#FFAF44", "#FF9632"),
+    "Platinum": ("#8CC584", "#45B2D3", "#51A795"),
+    "Diamond": ("#96B8DC", "#3EA5DB", "#4D6399"),
+    "Ruby": ("#E45B62", "#E14476", "#CA0059"),
+    "Unknown": ("#AAAAAA", "#666666", "#000000"),
+}
+
+# Current JUNGOL RV boundaries. Numeric tier 1..30 maps Bronze V .. Ruby I.
 TIER_BOUNDS = {
-    1: (0, 30),
-    2: (30, 60),
-    3: (60, 90),
-    4: (120, 150),
-    5: (150, 200),
-    6: (200, 300),
-    7: (300, 400),
-    8: (400, 500),
-    9: (500, 650),
-    10: (650, 800),
-    11: (800, 950),
-    12: (950, 1100),
-    13: (1100, 1250),
-    14: (1250, 1400),
-    15: (1400, 1600),
-    16: (1600, 1750),
-    17: (1750, 1900),
-    18: (1900, 2050),
-    19: (2050, 2200),
-    20: (2200, 2350),
-    21: (2350, 2500),
-    22: (2500, 2650),
-    23: (2650, 2800),
-    24: (2800, 2950),
-    25: (2950, 3100),
-    26: (3100, 3250),
-    27: (3250, 3400),
-    28: (3400, 3550),
-    29: (3550, 3700),
-    30: (3700, 4000),
+    1: (30, 60), 2: (60, 90), 3: (90, 120), 4: (120, 150), 5: (150, 200),
+    6: (200, 300), 7: (300, 400), 8: (400, 500), 9: (500, 650), 10: (650, 800),
+    11: (800, 950), 12: (950, 1100), 13: (1100, 1250), 14: (1250, 1400), 15: (1400, 1600),
+    16: (1600, 1750), 17: (1750, 1900), 18: (1900, 2000), 19: (2000, 2100), 20: (2100, 2200),
+    21: (2200, 2300), 22: (2300, 2400), 23: (2400, 2500), 24: (2500, 2600), 25: (2600, 2700),
+    26: (2700, 2800), 27: (2800, 2850), 28: (2850, 2900), 29: (2900, 2950), 30: (2950, 3000),
 }
 
 
@@ -77,7 +63,7 @@ def parse_profile(page: str) -> dict[str, object]:
 
     handle_match = re.search(r"@([^\s·]+)", title)
     handle = handle_match.group(1) if handle_match else "Lir09"
-    tier_name = title.split("·", 1)[1].strip() if "·" in title else "JUNGOL"
+    tier_name = title.split("·", 1)[1].strip() if "·" in title else "Unknown"
 
     rank_match = re.search(r"rank\s+([\d,]+)", description, re.IGNORECASE)
     rank_text = rank_match.group(1) if rank_match else "-"
@@ -108,23 +94,24 @@ def parse_profile(page: str) -> dict[str, object]:
 
 def tier_display(tier_number: int, fallback_name: str) -> tuple[str, str]:
     if 1 <= tier_number <= 30:
-        group_index = (tier_number - 1) // 5
+        group = TIER_GROUPS[(tier_number - 1) // 5]
         level = 5 - ((tier_number - 1) % 5)
-        return TIER_GROUPS[group_index], str(level)
+        return group, str(level)
 
     parts = fallback_name.split()
-    return (parts[0] if parts else "JUNGOL", parts[-1] if len(parts) > 1 else "-")
+    return (parts[0] if parts else "Unknown", parts[-1] if len(parts) > 1 else "")
 
 
-def progress_info(tier_number: int, rv: int | None) -> tuple[int, int, int]:
+def progress_info(tier_number: int, rv: int | None) -> tuple[int, int, int, float]:
     if rv is None or tier_number not in TIER_BOUNDS:
-        return 0, 100, 0
+        return 0, 0, 0, 35.0
 
     minimum, target = TIER_BOUNDS[tier_number]
     span = max(1, target - minimum)
-    gained = max(0, min(rv - minimum, span))
-    percent = round(gained / span * 100)
-    return percent, rv, target
+    current = max(minimum, min(rv, target))
+    percentage = round((current - minimum) * 100 / span)
+    bar_end = 35 + 2.55 * percentage
+    return percentage, rv, target, bar_end
 
 
 def make_svg(profile: dict[str, object]) -> str:
@@ -136,54 +123,144 @@ def make_svg(profile: dict[str, object]) -> str:
     solved = profile["solved"] if isinstance(profile["solved"], int) else None
 
     tier_group, tier_level = tier_display(tier_number, tier_name)
-    tier_group = html_lib.escape(tier_group)
-    tier_level = html_lib.escape(tier_level)
+    color1, color2, color3 = BACKGROUND_COLOR.get(tier_group, BACKGROUND_COLOR["Unknown"])
+    percentage, current_rv, target_rv, bar_end = progress_info(tier_number, rv)
 
-    percent, current_rv, target_rv = progress_info(tier_number, rv)
-    track_x = 34
-    track_width = 258
-    fill_width = round(track_width * percent / 100)
-
-    rv_text = str(rv) if rv is not None else "-"
     solved_text = str(solved) if solved is not None else "-"
+    rv_text = str(rv) if rv is not None else "-"
     progress_text = f"{current_rv} / {target_rv}" if rv is not None else "-"
 
-    return f'''<svg xmlns="http://www.w3.org/2000/svg" width="350" height="170" viewBox="0 0 350 170" role="img" aria-label="JUNGOL {handle} {html_lib.escape(tier_name)}">
+    return f'''<svg height="170" width="350" viewBox="0 0 350 170"
+    xmlns="http://www.w3.org/2000/svg" role="img"
+    aria-label="JUNGOL {handle} {html_lib.escape(tier_name)}">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;display=block');
+
+    @keyframes fadeIn {{
+      from {{ opacity: 0; }}
+      to {{ opacity: 1; }}
+    }}
+    @keyframes delayFadeIn {{
+      0%, 80% {{ opacity: 0; }}
+      100% {{ opacity: 1; }}
+    }}
+    @keyframes rateBarAnimation {{
+      0%, 70% {{ stroke-dashoffset: {bar_end:.2f}; }}
+      100% {{ stroke-dashoffset: 35; }}
+    }}
+
+    text {{
+      fill: white;
+      font-family: 'Noto Sans KR', sans-serif;
+    }}
+    .handle {{
+      font-size: 1.30em;
+      font-weight: 700;
+      animation: fadeIn 1s ease-in-out forwards;
+    }}
+    .tier-title {{
+      font-size: 1.35em;
+      font-weight: 700;
+      font-style: italic;
+      opacity: 0;
+      animation: delayFadeIn 2s ease-in-out forwards;
+    }}
+    .tier-number {{
+      font-size: 3.1em;
+      font-weight: 700;
+      text-anchor: middle;
+      opacity: 0;
+      animation: delayFadeIn 2s ease-in-out forwards;
+    }}
+    .subtitle {{ font-weight: 500; font-size: 0.9em; }}
+    .value {{ font-weight: 400; font-size: 0.9em; }}
+    .percentage {{ font-weight: 300; font-size: 0.8em; }}
+    .progress {{ font-size: 0.7em; }}
+    .item {{
+      opacity: 0;
+      animation: delayFadeIn 2s ease-in-out forwards;
+    }}
+    .rate-bar {{
+      stroke-dasharray: {bar_end:.2f};
+      stroke-dashoffset: {bar_end:.2f};
+      animation: rateBarAnimation 1.5s forwards ease-in-out;
+    }}
+  </style>
+
   <defs>
-    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#8f939a"/>
-      <stop offset="34%" stop-color="#617489"/>
-      <stop offset="100%" stop-color="#17304b"/>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="35%">
+      <stop offset="10%" stop-color="{color1}" stop-opacity="1">
+        <animate attributeName="stop-opacity"
+          values="0.7;0.73;0.9;0.97;1;0.97;0.9;0.73;0.7"
+          dur="4s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="55%" stop-color="{color2}" stop-opacity="1">
+        <animate attributeName="stop-opacity"
+          values="1;0.95;0.93;0.95;1"
+          dur="4s" repeatCount="indefinite"/>
+      </stop>
+      <stop offset="100%" stop-color="{color3}" stop-opacity="1">
+        <animate attributeName="stop-opacity"
+          values="1;0.97;0.9;0.83;0.8;0.83;0.9;0.97;1"
+          dur="4s" repeatCount="indefinite"/>
+      </stop>
     </linearGradient>
   </defs>
 
-  <rect x="0" y="0" width="350" height="170" rx="11" fill="url(#card)"/>
+  <rect width="350" height="170" rx="10" ry="10" fill="url(#grad)"/>
 
-  <!-- tier emblem -->
-  <text x="38" y="47" fill="#fff" font-family="Segoe Print, Bradley Hand, cursive" font-size="24" font-style="italic">{tier_group}</text>
-  <path d="M34 51 V108 L68 127 L102 108 V51" fill="none" stroke="#fff" stroke-width="2" opacity=".95"/>
-  <path d="M34 108 L68 132 L102 108" fill="none" stroke="#fff" stroke-width="2" opacity=".95"/>
-  <text x="68" y="101" text-anchor="middle" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="700">{tier_level}</text>
+  <!-- v2-style animated tier crest -->
+  <line x1="34" y1="50" x2="34" y2="105" stroke-width="2" stroke="white">
+    <animate attributeName="y2" dur="0.8s" fill="freeze"
+      calcMode="spline" keyTimes="0;0.675;1" keySplines="0 0 1 1;0.5 0 0.5 1"
+      values="50;50;105"/>
+  </line>
+  <line x1="34" y1="105" x2="67" y2="125" stroke-width="2" stroke="white">
+    <animate attributeName="x2" dur="1s" fill="freeze" values="34;34;67" keyTimes="0;0.8;1"/>
+    <animate attributeName="y2" dur="1s" fill="freeze" values="105;105;125" keyTimes="0;0.8;1"/>
+  </line>
+  <line x1="67" y1="125" x2="100" y2="105" stroke-width="2" stroke="white">
+    <animate attributeName="x2" dur="1.2s" fill="freeze" values="67;67;100" keyTimes="0;0.833;1"/>
+    <animate attributeName="y2" dur="1.2s" fill="freeze" values="125;125;105" keyTimes="0;0.833;1"/>
+  </line>
+  <line x1="100" y1="105" x2="100" y2="50" stroke-width="2" stroke="white">
+    <animate attributeName="y2" dur="1.5s" fill="freeze" values="105;105;50" keyTimes="0;0.8;1"/>
+  </line>
+  <line x1="67" y1="130" x2="34" y2="110" stroke-width="2" stroke="white">
+    <animate attributeName="x2" dur="1.9s" fill="freeze" values="67;67;34" keyTimes="0;0.789;1"/>
+    <animate attributeName="y2" dur="1.9s" fill="freeze" values="130;130;110" keyTimes="0;0.789;1"/>
+  </line>
+  <line x1="67" y1="130" x2="100" y2="110" stroke-width="2" stroke="white">
+    <animate attributeName="x2" dur="1.9s" fill="freeze" values="67;67;100" keyTimes="0;0.789;1"/>
+    <animate attributeName="y2" dur="1.9s" fill="freeze" values="130;130;110" keyTimes="0;0.789;1"/>
+  </line>
 
-  <!-- profile -->
-  <text x="136" y="51" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="21" font-weight="700">{handle}</text>
+  <text x="67" y="42" class="tier-title" text-anchor="middle">{html_lib.escape(tier_group)}</text>
+  <text x="67" y="100" class="tier-number">{html_lib.escape(tier_level)}</text>
 
-  <g fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="15">
-    <text x="136" y="80" font-weight="700">rate</text>
-    <text x="226" y="80">{rv_text}</text>
+  <text x="135" y="50" class="handle">{handle}</text>
 
-    <text x="136" y="101" font-weight="700">solved</text>
-    <text x="226" y="101">{solved_text}</text>
-
-    <text x="136" y="122" font-weight="700">rank</text>
-    <text x="226" y="122">#{rank}</text>
+  <g class="item" style="animation-delay:200ms">
+    <text x="135" y="79" class="subtitle">rate</text>
+    <text x="225" y="79" class="value">{rv_text}</text>
+  </g>
+  <g class="item" style="animation-delay:400ms">
+    <text x="135" y="99" class="subtitle">solved</text>
+    <text x="225" y="99" class="value">{solved_text}</text>
+  </g>
+  <g class="item" style="animation-delay:600ms">
+    <text x="135" y="119" class="subtitle">rank</text>
+    <text x="225" y="119" class="value">#{rank}</text>
   </g>
 
-  <!-- progress -->
-  <rect x="{track_x}" y="141" width="{track_width}" height="4" rx="2" fill="#fff" opacity=".38"/>
-  <rect x="{track_x}" y="141" width="{fill_width}" height="4" rx="2" fill="#fff"/>
-  <text x="299" y="145" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="12">{percent}%</text>
-  <text x="292" y="158" text-anchor="end" fill="#fff" font-family="Arial, Helvetica, sans-serif" font-size="12" font-weight="700">{progress_text}</text>
+  <g class="rate-bar" style="animation-delay:800ms">
+    <line x1="35" y1="142" x2="{bar_end:.2f}" y2="142"
+      stroke-width="4" stroke="floralwhite" stroke-linecap="round"/>
+  </g>
+  <line x1="35" y1="142" x2="290" y2="142"
+    stroke-width="4" stroke-opacity="40%" stroke="floralwhite" stroke-linecap="round"/>
+  <text x="297" y="142" dominant-baseline="middle" class="percentage">{percentage}%</text>
+  <text x="293" y="157" class="progress" text-anchor="end">{progress_text}</text>
 </svg>
 '''
 
