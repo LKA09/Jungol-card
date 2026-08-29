@@ -45,15 +45,15 @@ def wordmark_image(tier: str) -> str:
 
     source_width, source_height = png_size(data)
 
-    # Slightly larger than the original v2 wordmark so it reads clearly on GitHub.
-    display_height = 33.0
+    # Larger handwritten tier wordmark for better readability on GitHub README.
+    display_height = 38.0
     display_width = display_height * source_width / source_height
-    if display_width > 96:
-        display_width = 96.0
+    if display_width > 106.0:
+        display_width = 106.0
         display_height = display_width * source_height / source_width
 
     x = 67.0 - display_width / 2
-    y = 11.5 + (33.0 - display_height) / 2
+    y = 7.0 + (39.0 - display_height) / 2
     encoded = base64.b64encode(data).decode("ascii")
 
     return (
