@@ -24,6 +24,10 @@ TIER_RE = re.compile(
     r'(Bronze|Silver|Gold|Platinum|Diamond|Ruby)</text>'
 )
 
+BOLD_FILTER = '''<filter id="tierWordmarkBold" x="-20%" y="-25%" width="140%" height="150%">
+      <feMorphology in="SourceGraphic" operator="dilate" radius="0.55"/>
+    </filter>'''
+
 
 def png_size(data: bytes) -> tuple[int, int]:
     if data[:8] != b"\x89PNG\r\n\x1a\n" or data[12:16] != b"IHDR":
@@ -41,31 +45,45 @@ def wordmark_image(tier: str) -> str:
 
     source_width, source_height = png_size(data)
 
-    # Match the original mazassumnida v2 placement: handwritten wordmark
-    # centered above the animated crest, while preserving the PNG aspect ratio.
-    display_height = 29.0
+    # Slightly larger than the original v2 wordmark so it reads clearly on GitHub.
+    display_height = 33.0
     display_width = display_height * source_width / source_height
-    if display_width > 88:
-        display_width = 88.0
+    if display_width > 96:
+        display_width = 96.0
         display_height = display_width * source_height / source_width
 
     x = 67.0 - display_width / 2
-    y = 14.0 + (30.0 - display_height) / 2
+    y = 11.5 + (33.0 - display_height) / 2
     encoded = base64.b64encode(data).decode("ascii")
 
     return (
         f'<image x="{x:.2f}" y="{y:.2f}" width="{display_width:.2f}" '
         f'height="{display_height:.2f}" class="tier-title" '
+        f'filter="url(#tierWordmarkBold)" '
         f'preserveAspectRatio="xMidYMid meet" '
         f'href="data:image/png;base64,{encoded}"/>'
     )
+
+
+def ensure_bold_filter(svg: str) -> str:
+    if 'id="tierWordmarkBold"' in svg:
+        return svg
+
+    marker = "<defs>"
+    if marker not in svg:
+        return svg
+
+    return svg.replace(marker, f"{marker}\n    {BOLD_FILTER}", 1)
 
 
 def replace_wordmark(svg: str) -> str:
     def replacement(match: re.Match[str]) -> str:
         return wordmark_image(match.group(1))
 
-    return TIER_RE.sub(replacement, svg)
+    replaced = TIER_RE.sub(replacement, svg)
+    if replaced != svg:
+        replaced = ensure_bold_filter(replaced)
+    return replaced
 
 
 def main() -> None:
