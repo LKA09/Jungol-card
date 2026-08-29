@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - generate_card.py
+      - generate_tier_previews.py
       - .github/workflows/update-card.yml
   schedule:
     - cron: '17 */6 * * *'
@@ -29,8 +30,11 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Generate cards
+      - name: Generate current cards
         run: python generate_card.py
+
+      - name: Generate tier gallery
+        run: python generate_tier_previews.py
 
       - name: Commit changed cards
         shell: bash
