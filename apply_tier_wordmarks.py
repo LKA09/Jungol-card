@@ -24,10 +24,6 @@ TIER_RE = re.compile(
     r'(Bronze|Silver|Gold|Platinum|Diamond|Ruby)</text>'
 )
 
-BOLD_FILTER = '''<filter id="tierWordmarkBold" x="-20%" y="-25%" width="140%" height="150%">
-      <feMorphology in="SourceGraphic" operator="dilate" radius="0.55"/>
-    </filter>'''
-
 
 def png_size(data: bytes) -> tuple[int, int]:
     if data[:8] != b"\x89PNG\r\n\x1a\n" or data[12:16] != b"IHDR":
@@ -53,37 +49,23 @@ def wordmark_image(tier: str) -> str:
         display_height = display_width * source_height / source_width
 
     x = 67.0 - display_width / 2
-    y = 7.0 + (39.0 - display_height) / 2
+    # Move the wordmark slightly lower so it sits closer to the crest.
+    y = 11.0 + (39.0 - display_height) / 2
     encoded = base64.b64encode(data).decode("ascii")
 
     return (
         f'<image x="{x:.2f}" y="{y:.2f}" width="{display_width:.2f}" '
         f'height="{display_height:.2f}" class="tier-title" '
-        f'filter="url(#tierWordmarkBold)" '
         f'preserveAspectRatio="xMidYMid meet" '
         f'href="data:image/png;base64,{encoded}"/>'
     )
-
-
-def ensure_bold_filter(svg: str) -> str:
-    if 'id="tierWordmarkBold"' in svg:
-        return svg
-
-    marker = "<defs>"
-    if marker not in svg:
-        return svg
-
-    return svg.replace(marker, f"{marker}\n    {BOLD_FILTER}", 1)
 
 
 def replace_wordmark(svg: str) -> str:
     def replacement(match: re.Match[str]) -> str:
         return wordmark_image(match.group(1))
 
-    replaced = TIER_RE.sub(replacement, svg)
-    if replaced != svg:
-        replaced = ensure_bold_filter(replaced)
-    return replaced
+    return TIER_RE.sub(replacement, svg)
 
 
 def main() -> None:
