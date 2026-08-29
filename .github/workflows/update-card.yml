@@ -35,7 +35,7 @@ jobs:
       - name: Commit changed card
         shell: bash
         run: |
-          if git diff --quiet -- jungol-card.svg; then
+          if [ -z "$(git status --porcelain -- jungol-card.svg)" ]; then
             echo "Card is already up to date."
             exit 0
           fi
