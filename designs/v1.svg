@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="350" height="170" viewBox="0 0 350 170" role="img" aria-label="JUNGOL Lir09 Bronze II">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#F49347"/>
+      <stop offset="55%" stop-color="#984400"/>
+      <stop offset="100%" stop-color="#492000"/>
+    </linearGradient>
+  </defs>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&amp;display=block');
+    text { fill:#fff; font-family:'Noto Sans KR',sans-serif; }
+    .handle { font-size:21px; font-weight:700; }
+    .tier { font-size:20px; font-weight:700; opacity:.72; }
+    .label { font-size:14px; font-weight:500; }
+    .value { font-size:14px; font-weight:400; }
+    .small { font-size:11px; font-weight:400; }
+  </style>
+  <rect width="350" height="170" rx="10" fill="url(#bg)"/>
+  <text x="35" y="48" class="handle">Lir09</text>
+  <text x="315" y="48" text-anchor="end" class="tier">Bronze 2</text>
+  <text x="35" y="79" class="label">rate</text><text x="145" y="79" class="value">130</text>
+  <text x="35" y="100" class="label">solved</text><text x="145" y="100" class="value">42</text>
+  <text x="35" y="121" class="label">rank</text><text x="145" y="121" class="value">#7,367</text>
+  <line x1="35" y1="142" x2="290" y2="142" stroke="floralwhite" stroke-opacity=".4" stroke-width="4" stroke-linecap="round"/>
+  <line x1="35" y1="142" x2="119.15" y2="142" stroke="floralwhite" stroke-width="4" stroke-linecap="round"/>
+  <text x="297" y="145" class="small">33%</text>
+  <text x="293" y="158" text-anchor="end" class="small">130 / 150</text>
+</svg>
