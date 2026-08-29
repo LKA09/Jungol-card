@@ -1,4 +1,4 @@
-name: Update JUNGOL Card
+name: Update JUNGOL Cards
 
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: update-jungol-card
+  group: update-jungol-cards
   cancel-in-progress: true
 
 jobs:
@@ -29,19 +29,19 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Generate card
+      - name: Generate cards
         run: python generate_card.py
 
-      - name: Commit changed card
+      - name: Commit changed cards
         shell: bash
         run: |
-          if [ -z "$(git status --porcelain -- jungol-card.svg)" ]; then
-            echo "Card is already up to date."
+          if [ -z "$(git status --porcelain -- jungol-card.svg designs/)" ]; then
+            echo "Cards are already up to date."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add jungol-card.svg
-          git commit -m "chore: update JUNGOL profile card"
+          git add -A -- jungol-card.svg designs/
+          git commit -m "chore: update JUNGOL cards"
           git push
