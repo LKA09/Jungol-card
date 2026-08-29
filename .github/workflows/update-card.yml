@@ -6,6 +6,7 @@ on:
     paths:
       - generate_card.py
       - generate_tier_previews.py
+      - apply_tier_wordmarks.py
       - .github/workflows/update-card.yml
   schedule:
     - cron: '17 */6 * * *'
@@ -35,6 +36,9 @@ jobs:
 
       - name: Generate tier gallery
         run: python generate_tier_previews.py
+
+      - name: Apply original tier wordmarks
+        run: python apply_tier_wordmarks.py
 
       - name: Commit changed cards
         shell: bash
