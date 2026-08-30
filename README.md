@@ -1,17 +1,37 @@
+<div align="center">
+
 # JUNGOL Profile Card
 
-GitHub README에서 사용할 수 있는 JUNGOL 프로필 카드입니다.  
-현재 기본 카드는 [`Lir09`](https://jungol.co.kr/account/143157)의 **티어, RV, 푼 문제 수, 랭킹**을 읽어 자동으로 갱신합니다.
+**JUNGOL 프로필 정보를 GitHub README용 SVG 카드로 보여주는 비공식 프로젝트**
 
-## Current card
+[![Update JUNGOL Cards](https://github.com/LKA09/Jungol-card/actions/workflows/update-card.yml/badge.svg)](https://github.com/LKA09/Jungol-card/actions/workflows/update-card.yml)
 
 [![JUNGOL Profile](./jungol-card.svg)](https://jungol.co.kr/account/143157)
 
-## 사용 방법
+현재 기본 카드는 [`Lir09`](https://jungol.co.kr/account/143157)의 공개 프로필을 사용합니다.
 
-### 1. 바로 사용하기
+</div>
 
-아래 Markdown을 원하는 GitHub `README.md`에 그대로 붙여 넣으면 됩니다.
+---
+
+## Overview
+
+JUNGOL 공개 프로필에서 데이터를 읽어 GitHub README에 사용할 수 있는 SVG 카드를 생성합니다.
+
+- 티어 및 티어 워드마크
+- RV
+- 푼 문제 수
+- 전체 랭킹
+- RV 진행 바
+- GitHub Actions 자동 갱신
+- v2 / v1 / Compact 디자인 제공
+- Bronze V ~ Ruby I 전체 티어 미리보기 제공
+
+> 이 저장소는 JUNGOL 공식 프로젝트가 아닙니다.
+
+## Quick Start
+
+아래 Markdown을 자신의 GitHub `README.md`에 그대로 붙여 넣으면 현재 기본 카드를 사용할 수 있습니다.
 
 ```md
 [![JUNGOL Profile](https://raw.githubusercontent.com/LKA09/Jungol-card/main/jungol-card.svg)](https://jungol.co.kr/account/143157)
@@ -19,57 +39,116 @@ GitHub README에서 사용할 수 있는 JUNGOL 프로필 카드입니다.
 
 `jungol-card.svg`는 기본 **v2 Animated** 디자인입니다.
 
-### 2. 디자인 선택하기
+## Designs
 
-#### v2 · Animated
+### v2 · Animated
+
+기본 디자인입니다. 티어별 색상, 애니메이션, 손글씨 워드마크를 사용합니다.
+
+[![JUNGOL v2](./designs/v2.svg)](https://jungol.co.kr/account/143157)
 
 ```md
 [![JUNGOL v2](https://raw.githubusercontent.com/LKA09/Jungol-card/main/designs/v2.svg)](https://jungol.co.kr/account/143157)
 ```
 
-#### v1 · Classic
+### v1 · Classic
+
+애니메이션 없이 정보를 바로 확인할 수 있는 심플한 카드입니다.
+
+[![JUNGOL v1](./designs/v1.svg)](https://jungol.co.kr/account/143157)
 
 ```md
 [![JUNGOL v1](https://raw.githubusercontent.com/LKA09/Jungol-card/main/designs/v1.svg)](https://jungol.co.kr/account/143157)
 ```
 
-#### Compact
+### Compact
+
+프로필이나 프로젝트 목록에 작게 배치하기 위한 한 줄 카드입니다.
+
+[![JUNGOL compact](./designs/compact.svg)](https://jungol.co.kr/account/143157)
 
 ```md
 [![JUNGOL compact](https://raw.githubusercontent.com/LKA09/Jungol-card/main/designs/compact.svg)](https://jungol.co.kr/account/143157)
 ```
 
-### 3. 내 JUNGOL 계정으로 사용하기
+## Use Your Own Account
 
-이 저장소를 Fork한 뒤 아래 값만 자신의 계정에 맞게 바꾸면 됩니다.
+이 프로젝트를 자신의 JUNGOL 계정에 맞춰 사용하려면 저장소를 **Fork**한 뒤 설정값만 변경하면 됩니다.
 
-1. `generate_card.py`의 `ACCOUNT_ID`를 자신의 JUNGOL 계정 ID로 변경합니다.
-2. `main()` 안의 `Lir09` 계정 확인 부분을 자신의 JUNGOL 핸들로 변경합니다.
-3. 변경 내용을 `main` 브랜치에 Push합니다.
-4. GitHub Actions의 **Update JUNGOL Cards**가 실행되면 `jungol-card.svg`와 디자인 파일이 생성됩니다.
-5. 자신의 GitHub 아이디를 넣은 Raw URL을 README에 사용합니다.
+### 1. Fork
 
-예시:
+이 저장소를 자신의 GitHub 계정으로 Fork합니다.
+
+### 2. JUNGOL 계정 설정
+
+`generate_card.py`에서 `ACCOUNT_ID`를 자신의 JUNGOL 계정 ID로 변경합니다.
+
+```python
+ACCOUNT_ID = "YOUR_ACCOUNT_ID"
+```
+
+같은 파일의 `main()`에 있는 계정 확인 코드도 자신의 JUNGOL 핸들로 변경합니다.
+
+```python
+if profile["handle"] != "YOUR_HANDLE":
+    raise RuntimeError(f"unexpected JUNGOL account: {profile['handle']}")
+```
+
+### 3. Push
+
+변경 내용을 `main` 브랜치에 Push하면 GitHub Actions가 자동으로 카드를 생성합니다.
+
+생성되는 주요 파일은 다음과 같습니다.
+
+| File | Description |
+| --- | --- |
+| `jungol-card.svg` | 기본 v2 카드 |
+| `designs/v2.svg` | v2 Animated |
+| `designs/v1.svg` | v1 Classic |
+| `designs/compact.svg` | Compact 카드 |
+| `designs/tiers/*.svg` | 30개 티어 미리보기 |
+
+### 4. README에 연결
+
+Fork한 저장소 이름이 그대로 `Jungol-card`라면 아래 형식으로 사용합니다.
 
 ```md
 [![JUNGOL Profile](https://raw.githubusercontent.com/<github-id>/Jungol-card/main/jungol-card.svg)](https://jungol.co.kr/account/<account-id>)
 ```
 
-GitHub Actions 탭에서 `Update JUNGOL Cards`를 수동 실행할 수도 있습니다.
+## Automatic Updates
 
-## 표시되는 정보
+`.github/workflows/update-card.yml`이 카드 생성을 관리합니다.
 
-- JUNGOL 핸들
-- 현재 티어
-- RV
-- 푼 문제 수
-- 전체 랭킹
-- 다음 티어까지의 진행률
+```text
+JUNGOL 공개 프로필
+        ↓
+generate_card.py
+        ↓
+generate_tier_previews.py
+        ↓
+apply_tier_wordmarks.py
+        ↓
+jungol-card.svg + designs/
+```
 
-## Tier Gallery · v2
+워크플로는 다음 경우 실행됩니다.
 
-아래는 **Bronze V부터 Ruby I까지 모든 티어의 v2 디자인 미리보기**입니다.  
-`Preview / rate / solved / rank` 값은 디자인 확인용 샘플이며, 실제 `jungol-card.svg`는 JUNGOL 계정 데이터를 사용합니다.
+- 카드 생성 코드가 `main`에 Push될 때
+- 6시간마다 예약 실행될 때
+- Actions 탭에서 수동 실행할 때
+
+카드 내용이 변경되지 않았다면 불필요한 카드 업데이트 커밋은 생성하지 않습니다.
+
+> GitHub의 이미지 캐시 때문에 JUNGOL 정보가 바뀐 직후에는 README에서 새 카드가 표시되기까지 약간의 시간이 걸릴 수 있습니다.
+
+## Tier Gallery
+
+Bronze V부터 Ruby I까지 전체 30개 티어의 v2 미리보기입니다.  
+미리보기의 `Preview / rate / solved / rank` 값은 디자인 확인용 샘플입니다.
+
+<details>
+<summary><strong>전체 티어 갤러리 보기</strong></summary>
 
 ### Bronze
 
@@ -155,34 +234,32 @@ GitHub Actions 탭에서 `Update JUNGOL Cards`를 수동 실행할 수도 있습
 | --- |
 | <img src="./designs/tiers/30-ruby-i.svg" width="350" alt="Ruby I"> |
 
-## Designs
+</details>
 
-### v2 · Animated (default)
+## Project Structure
 
-`mazassumnida` v2의 레이아웃과 애니메이션 감성을 참고해 JUNGOL용으로 재구성한 기본 디자인입니다.
+```text
+.
+├── generate_card.py
+├── generate_tier_previews.py
+├── apply_tier_wordmarks.py
+├── jungol-card.svg
+├── designs/
+│   ├── v1.svg
+│   ├── v2.svg
+│   ├── compact.svg
+│   └── tiers/
+└── .github/workflows/update-card.yml
+```
 
-[![JUNGOL v2](./designs/v2.svg)](https://jungol.co.kr/account/143157)
+## Design Reference
 
-### v1 · Classic
+v2 디자인은 [`mazassumnida/mazassumnida`](https://github.com/mazassumnida/mazassumnida)의 v2 badge에서 레이아웃과 애니메이션 방향을 참고해 JUNGOL 데이터 구조에 맞게 다시 구현했습니다.
 
-애니메이션 없이 정보가 바로 보이는 심플한 카드입니다.
+---
 
-[![JUNGOL v1](./designs/v1.svg)](https://jungol.co.kr/account/143157)
+<div align="center">
 
-### Compact
+Made for GitHub README profiles using JUNGOL public profile data.
 
-README나 프로젝트 목록에 작게 넣기 위한 한 줄 버전입니다.
-
-[![JUNGOL compact](./designs/compact.svg)](https://jungol.co.kr/account/143157)
-
-## Auto update
-
-GitHub Actions가 JUNGOL 공개 프로필을 읽어서 현재 카드와 디자인 파일을 자동 갱신합니다. 티어 갤러리 30종도 생성 스크립트로 함께 관리합니다.
-
-현재는 **6시간마다 자동 실행**되며 Actions 탭에서 수동 실행도 가능합니다. 값이 바뀌지 않았다면 불필요한 카드 업데이트 커밋을 만들지 않습니다.
-
-> GitHub README 이미지에는 캐시가 적용될 수 있어 JUNGOL 정보가 갱신된 직후에는 화면에 반영되기까지 약간의 시간이 걸릴 수 있습니다.
-
-## Design reference
-
-v2는 [`mazassumnida/mazassumnida`](https://github.com/mazassumnida/mazassumnida)의 v2 badge에서 레이아웃과 애니메이션 방향을 참고해 JUNGOL 데이터 구조에 맞게 다시 구현했습니다.
+</div>
