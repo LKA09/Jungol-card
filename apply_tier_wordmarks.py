@@ -41,16 +41,16 @@ def wordmark_image(tier: str) -> str:
 
     source_width, source_height = png_size(data)
 
-    # Larger handwritten tier wordmark for better readability on GitHub README.
-    display_height = 38.0
+    # Large handwritten tier wordmark tuned for GitHub README rendering.
+    display_height = 41.0
     display_width = display_height * source_width / source_height
-    if display_width > 106.0:
-        display_width = 106.0
+    if display_width > 112.0:
+        display_width = 112.0
         display_height = display_width * source_height / source_width
 
     x = 67.0 - display_width / 2
-    # Move the wordmark slightly lower so it sits closer to the crest.
-    y = 11.0 + (39.0 - display_height) / 2
+    # Keep the larger wordmark visually close to the crest.
+    y = 11.0 + (41.0 - display_height) / 2
     encoded = base64.b64encode(data).decode("ascii")
 
     return (
