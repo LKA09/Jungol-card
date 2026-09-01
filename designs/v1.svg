@@ -18,11 +18,11 @@
   <rect width="350" height="170" rx="10" fill="url(#bg)"/>
   <text x="35" y="48" class="handle">Lir09</text>
   <text x="315" y="48" text-anchor="end" class="tier">Bronze 1</text>
-  <text x="35" y="79" class="label">rate</text><text x="145" y="79" class="value">159</text>
-  <text x="35" y="100" class="label">solved</text><text x="145" y="100" class="value">53</text>
-  <text x="35" y="121" class="label">rank</text><text x="145" y="121" class="value">#5,470</text>
+  <text x="35" y="79" class="label">rate</text><text x="145" y="79" class="value">166</text>
+  <text x="35" y="100" class="label">solved</text><text x="145" y="100" class="value">54</text>
+  <text x="35" y="121" class="label">rank</text><text x="145" y="121" class="value">#5,322</text>
   <line x1="35" y1="142" x2="290" y2="142" stroke="floralwhite" stroke-opacity=".4" stroke-width="4" stroke-linecap="round"/>
-  <line x1="35" y1="142" x2="80.90" y2="142" stroke="floralwhite" stroke-width="4" stroke-linecap="round"/>
-  <text x="297" y="145" class="small">18%</text>
-  <text x="293" y="158" text-anchor="end" class="small">159 / 200</text>
+  <line x1="35" y1="142" x2="116.60" y2="142" stroke="floralwhite" stroke-width="4" stroke-linecap="round"/>
+  <text x="297" y="145" class="small">32%</text>
+  <text x="293" y="158" text-anchor="end" class="small">166 / 200</text>
 </svg>
