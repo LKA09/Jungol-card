@@ -3,7 +3,7 @@
     @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&amp;display=block');
     @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
     @keyframes delayed { 0%,80% { opacity:0; } 100% { opacity:1; } }
-    @keyframes barIn { 0%,70% { stroke-dashoffset:116.60; } 100% { stroke-dashoffset:35; } }
+    @keyframes barIn { 0%,70% { stroke-dashoffset:172.70; } 100% { stroke-dashoffset:35; } }
     text { fill:white; font-family:'Noto Sans KR',sans-serif; text-rendering:geometricPrecision; }
     .handle { font-size:1.30em; font-weight:700; letter-spacing:-.02em; animation:fadeIn 1s ease-in-out forwards; }
     .tier-title { font-size:1.38em; font-weight:700; font-style:italic; letter-spacing:-.055em; opacity:0; animation:delayed 2s ease-in-out forwards; }
@@ -13,7 +13,7 @@
     .percentage { font-size:.80em; font-weight:300; }
     .progress { font-size:.70em; font-weight:400; }
     .item { opacity:0; animation:delayed 2s ease-in-out forwards; }
-    .rate-bar { stroke-dasharray:116.60; stroke-dashoffset:116.60; animation:barIn 1.5s ease-in-out forwards; }
+    .rate-bar { stroke-dasharray:172.70; stroke-dashoffset:172.70; animation:barIn 1.5s ease-in-out forwards; }
   </style>
   <defs>
     <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="35%">
@@ -35,12 +35,12 @@
   <text x="67" y="100" class="tier-number">1</text>
   <text x="135" y="50" class="handle">Lir09</text>
 
-  <g class="item" style="animation-delay:200ms"><text x="135" y="79" class="subtitle">rate</text><text x="225" y="79" class="value">166</text></g>
-  <g class="item" style="animation-delay:400ms"><text x="135" y="99" class="subtitle">solved</text><text x="225" y="99" class="value">54</text></g>
-  <g class="item" style="animation-delay:600ms"><text x="135" y="119" class="subtitle">rank</text><text x="225" y="119" class="value">#5,325</text></g>
+  <g class="item" style="animation-delay:200ms"><text x="135" y="79" class="subtitle">rate</text><text x="225" y="79" class="value">177</text></g>
+  <g class="item" style="animation-delay:400ms"><text x="135" y="99" class="subtitle">solved</text><text x="225" y="99" class="value">55</text></g>
+  <g class="item" style="animation-delay:600ms"><text x="135" y="119" class="subtitle">rank</text><text x="225" y="119" class="value">#5,158</text></g>
 
-  <g class="rate-bar" style="animation-delay:800ms"><line x1="35" y1="142" x2="116.60" y2="142" stroke="floralwhite" stroke-width="4" stroke-linecap="round"/></g>
+  <g class="rate-bar" style="animation-delay:800ms"><line x1="35" y1="142" x2="172.70" y2="142" stroke="floralwhite" stroke-width="4" stroke-linecap="round"/></g>
   <line x1="35" y1="142" x2="290" y2="142" stroke="floralwhite" stroke-opacity=".4" stroke-width="4" stroke-linecap="round"/>
-  <text x="297" y="142" dominant-baseline="middle" class="percentage">32%</text>
-  <text x="293" y="157" text-anchor="end" class="progress">166 / 200</text>
+  <text x="297" y="142" dominant-baseline="middle" class="percentage">54%</text>
+  <text x="293" y="157" text-anchor="end" class="progress">177 / 200</text>
 </svg>
