@@ -37,7 +37,7 @@
 
   <g class="item" style="animation-delay:200ms"><text x="135" y="79" class="subtitle">rate</text><text x="225" y="79" class="value">179</text></g>
   <g class="item" style="animation-delay:400ms"><text x="135" y="99" class="subtitle">solved</text><text x="225" y="99" class="value">56</text></g>
-  <g class="item" style="animation-delay:600ms"><text x="135" y="119" class="subtitle">rank</text><text x="225" y="119" class="value">#5,027</text></g>
+  <g class="item" style="animation-delay:600ms"><text x="135" y="119" class="subtitle">rank</text><text x="225" y="119" class="value">#5,029</text></g>
 
   <g class="rate-bar" style="animation-delay:800ms"><line x1="35" y1="142" x2="182.90" y2="142" stroke="floralwhite" stroke-width="4" stroke-linecap="round"/></g>
   <line x1="35" y1="142" x2="290" y2="142" stroke="floralwhite" stroke-opacity=".4" stroke-width="4" stroke-linecap="round"/>
